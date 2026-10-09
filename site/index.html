@@ -18,7 +18,7 @@ a{color:#9fcaff}button{background:#26486c;color:white;border:0;border-radius:8px
 <div class="stat">Symbols available<b id="symbols">—</b></div>
 <div class="stat">Candidate signals<b id="alerts">—</b></div></div>
 <h2>Latest market observations</h2><div class="wrap"><table><thead><tr><th>Symbol</th><th>Last price</th><th>Volume (minute)</th><th>Bar time (UTC)</th><th>Source</th></tr></thead><tbody id="market"><tr><td colspan="5">Waiting for cloud data</td></tr></tbody></table></div>
-<h2>Unverified candidate alerts</h2><div class="wrap"><table><thead><tr><th>UTC minute</th><th>Symbol</th><th>Signal</th><th>Change %</th><th>Volume ratio</th></tr></thead><tbody id="signals"><tr><td colspan="5">No data yet</td></tr></tbody></table></div>
+<h2>Layer 3 · Verification</h2><p class="muted">Rule reproduction is not independent corroboration. Evidence SHA-256 hashes do not constitute external timestamps.</p><div class="stats"><div class="stat">Reproduced candidates<b id="reproduced">—</b></div><div class="stat">Independently confirmed<b id="confirmed">—</b></div></div><div class="wrap"><table><thead><tr><th>Minute UTC</th><th>Symbol</th><th>Review</th><th>Evidence SHA-256</th></tr></thead><tbody id="verification"></tbody></table></div><h2>Unverified candidate alerts</h2><div class="wrap"><table><thead><tr><th>UTC minute</th><th>Symbol</th><th>Signal</th><th>Change %</th><th>Volume ratio</th></tr></thead><tbody id="signals"><tr><td colspan="5">No data yet</td></tr></tbody></table></div>
 <p class="muted" id="errors"></p><p><a href="data/latest.json">Raw JSON data</a> · <a href="https://github.com/Kashburner1968/AI-Financial-Integrity-Firewall">Open-source code</a></p>
 <script>
 const $=id=>document.getElementById(id);
@@ -33,6 +33,8 @@ async function refresh(){
   $("status").textContent=Number.isFinite(age)?(age<20?"Recent snapshot":"Stale snapshot"):"Unknown";
   $("updated").textContent=data.collected_at_utc||"Unknown";
   $("symbols").textContent=latest.length;$("alerts").textContent=alerts.length;
+  const review=data.verification||{}; $("reproduced").textContent=review.reproduced_count??"—";$("confirmed").textContent=review.independently_verified_count??"—";$("verification").replaceChildren();
+  for(const r of (review.records||[]).slice(-40).reverse()){const tr=document.createElement("tr");[r.bar_time_utc,r.symbol,r.status,r.evidence_sha256].forEach(v=>cell(tr,v));$("verification").appendChild(tr)}
   $("market").replaceChildren();
   for(const r of latest.sort((a,b)=>a.symbol.localeCompare(b.symbol))){
    const tr=document.createElement("tr");[r.symbol,fmt(r.close),r.volume,r.bar_time_utc,r.source].forEach(v=>cell(tr,v));$("market").appendChild(tr)
