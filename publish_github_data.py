@@ -21,7 +21,7 @@ def main():
         symbol=row["symbol"]
         if symbol not in latest or row["bar_time_utc"]>latest[symbol]["bar_time_utc"]:
             latest[symbol]=row
-    data={"collected_at_utc":status.get("retrieved_utc"),
+    verification=json.loads((root/"verification.json").read_text(encoding="utf-8"))\n    data={"verification":{k:v for k,v in verification.items() if k!="source_status"}, "collected_at_utc":status.get("retrieved_utc"),
           "source":status.get("source"),"errors":status.get("errors",[]),
           "latest":latest,"candidate_alerts":alerts[-100:],
           "bars":bars[-6000:],"warning":"Unverified research signals; not findings of market manipulation."}
