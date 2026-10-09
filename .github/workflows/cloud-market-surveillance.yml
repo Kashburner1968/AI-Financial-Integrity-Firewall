@@ -23,6 +23,11 @@ jobs:
           python-version: '3.12'
       - name: Fetch market data and screen candidate anomalies
         run: python public_market_collector.py --output-dir output
+      - name: Compile independently checkable run ledger and HTML report
+        if: success()
+        run: |
+          python batch_to_ledger.py --input output/bars.csv --database output/firewall.db
+          python render_cloud_report.py
       - name: Upload research snapshot and run status
         if: always()
         uses: actions/upload-artifact@v4
