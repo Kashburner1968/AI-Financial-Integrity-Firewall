@@ -28,6 +28,17 @@ jobs:
         run: |
           python batch_to_ledger.py --input output/bars.csv --database output/firewall.db
           python render_cloud_report.py
+      - name: Persist research records in Supabase
+        if: success()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+            python supabase_store.py
+          else
+            echo "Supabase not configured yet; preserving GitHub artifacts only."
+          fi
       - name: Upload research snapshot and run status
         if: always()
         uses: actions/upload-artifact@v4
