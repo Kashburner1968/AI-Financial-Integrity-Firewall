@@ -4,7 +4,8 @@ import os
 import sqlite3
 import pandas as pd
 import streamlit as st
-from evidence_ledger import Ledger
+from evidence_ledger import GENESIS
+import hashlib
 
 DB=os.getenv("FIREWALL_DB","data/firewall.db")
 st.set_page_config(page_title="Financial Integrity Firewall", layout="wide")
@@ -14,9 +15,17 @@ if not os.path.exists(DB):
     st.warning("Waiting for collector database. Nothing is live yet.")
     st.stop()
 try:
-    ledger=Ledger(DB)
-    st.metric("Evidence chain", "VALID" if ledger.verify() else "FAILED — INVESTIGATE")
-    with sqlite3.connect(DB) as conn:
+    def verify_chain(conn):
+        previous=GENESIS
+        for event_id, created, payload, prev_hash, digest in conn.execute(
+            "SELECT event_id,created_at,payload,prev_hash,hash FROM alerts ORDER BY seq"):
+            calculated=hashlib.sha256((previous+"|"+event_id+"|"+created+"|"+payload).encode()).hexdigest()
+            if prev_hash != previous or digest != calculated:
+                return False
+            previous=digest
+        return True
+    with sqlite3.connect("file:"+os.path.abspath(DB)+"?mode=ro",uri=True) as conn:
+        st.metric("Evidence chain", "VALID" if verify_chain(conn) else "FAILED — INVESTIGATE")
         bars=pd.read_sql_query("SELECT symbol,minute,close,volume,source FROM bars ORDER BY minute DESC LIMIT 20000",conn)
         alerts=pd.read_sql_query("SELECT seq,created_at,payload,hash FROM alerts ORDER BY seq DESC LIMIT 200",conn)
     st.metric("Candidate alerts in ledger",len(alerts))
