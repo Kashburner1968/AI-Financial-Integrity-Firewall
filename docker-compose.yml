@@ -1,0 +1,21 @@
+services:
+  stream:
+    build: .
+    command: python run_stream.py
+    environment:
+      TRADIER_TOKEN: ${TRADIER_TOKEN:?Optional Tradier stream needs a cloud secret}
+      FIREWALL_DB: /var/lib/firewall/firewall.db
+    volumes:
+      - firewall-data:/var/lib/firewall
+    restart: unless-stopped
+  dashboard:
+    build: .
+    environment:
+      FIREWALL_DB: /var/lib/firewall/firewall.db
+    ports:
+      - "8501:8501"
+    volumes:
+      - firewall-data:/var/lib/firewall:ro
+    restart: unless-stopped
+volumes:
+  firewall-data:
