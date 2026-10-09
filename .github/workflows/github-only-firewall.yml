@@ -23,7 +23,7 @@ jobs:
           python-version: '3.12'
       - name: Collect public bars
         run: python public_market_collector.py --output-dir output
-      - name: Publish bounded snapshot
+      - name: Independently review candidate data (Layer 3)\n        run: python layer3_verify.py\n      - name: Publish bounded snapshot
         run: python publish_github_data.py
       - name: Commit snapshot to repository
         run: |
